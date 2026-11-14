@@ -206,6 +206,9 @@
 
     /* ─── MAIN ─── */
     main {
+      flex: 1 0 auto;
+      overflow-y: auto;
+    }
       flex: 1;
       padding: 16px;
       padding-bottom: calc(16px + var(--safe-bottom));
@@ -493,7 +496,7 @@
     <button class="drawer-close" onclick="closeDrawer()">✕</button>
     <div style="font-size:22px; font-weight:900; color:var(--accent-cyan); margin-bottom:8px;">BioOrbit-Edge</div>
     <button class="drawer-btn active" id="d-cockpit" onclick="switchTab('cockpit'); closeDrawer()">🚀 Live Health Cockpit</button>
-    <button class="drawer-btn"        id="d-deck"    onclick="switchTab('deck');    closeDrawer()">📊 7-Slide Pitch Deck</button>
+
     <button class="drawer-btn"        id="d-science" onclick="switchTab('science'); closeDrawer()">🧬 Science & Architecture</button>
     <button class="audio-btn" style="margin-top:12px; padding:14px 24px; font-size:14px;" id="audioToggleMobile" onclick="toggleAudio()">🔈 Heart Beep: Off</button>
   </div>
@@ -511,7 +514,7 @@
     <!-- Desktop Nav -->
     <div class="nav-tabs-desktop">
       <button class="nav-btn active" onclick="switchTab('cockpit')">🚀 Live Cockpit</button>
-      <button class="nav-btn"        onclick="switchTab('deck')">📊 Pitch Deck</button>
+
       <button class="nav-btn"        onclick="switchTab('science')">🧬 Science</button>
     </div>
 
@@ -676,17 +679,7 @@
       </div>
     </div>
 
-    <!-- TAB 2: PITCH DECK -->
-    <div id="tab-deck" class="tab-content">
-      <div class="card" style="margin-bottom:12px;">
-        <div class="card-title">
-          <span>Official 7-Slide Presentation</span>
-          <span style="font-size:10px; color:var(--accent-cyan);">Global Award Compliant</span>
-        </div>
-        <p style="font-size:12px; color:#cbd5e1;">All 7 presentation slides are embedded and viewable directly below:</p>
-      </div>
-      <iframe class="deck-frame" src="presentation-deck.html" title="BioOrbit-Edge 7-Slide Deck"></iframe>
-    </div>
+
 
     <!-- TAB 3: SCIENCE -->
     <div id="tab-science" class="tab-content">
@@ -718,9 +711,7 @@
       <button class="bnav-btn active" id="bnav-cockpit" onclick="switchTab('cockpit')">
         <span class="icon">🚀</span><span>Cockpit</span>
       </button>
-      <button class="bnav-btn" id="bnav-deck" onclick="switchTab('deck')">
-        <span class="icon">📊</span><span>Deck</span>
-      </button>
+
       <button class="bnav-btn" id="bnav-science" onclick="switchTab('science')">
         <span class="icon">🧬</span><span>Science</span>
       </button>
@@ -732,7 +723,7 @@
 
   <script>
     // ─── Tab Switching ───────────────────────────────────────────
-    const TABS = ['cockpit', 'deck', 'science'];
+    const TABS = ['cockpit', 'science'];
 
     function switchTab(id) {
       TABS.forEach(t => {
@@ -861,6 +852,25 @@
     drawECG();
 
     // ─── Scenario Switcher ───────────────────────────────────────
+    // ─── Vital Alert Thresholds ───────────────────────────────────────
+    const HR_LOW = 55, HR_HIGH = 120;
+    const TEMP_LOW = 36.2, TEMP_HIGH = 38.5;
+
+    function checkVitals() {
+      const hr = parseFloat(document.getElementById('val-hr').innerText);
+      const temp = parseFloat(document.getElementById('val-temp').innerText);
+      const alertBox = document.getElementById('cdssAlert');
+      let messages = [];
+      if (hr < HR_LOW) messages.push(`⚠️ Bradycardia: HR ${hr} BPM`);
+      if (hr > HR_HIGH) messages.push(`⚠️ Tachycardia: HR ${hr} BPM`);
+      if (temp < TEMP_LOW) messages.push(`⚠️ Hypothermia: Temp ${temp}°C`);
+      if (temp > TEMP_HIGH) messages.push(`⚠️ Hyperthermia: Temp ${temp}°C`);
+      if (messages.length) {
+        alertBox.className = 'cdss-alert alert-danger';
+        alertBox.innerHTML = `<strong>Alert:</strong> ` + messages.join(' | ');
+      }
+    }
+
     function setScenario(scen, btn) {
       currentScenario = scen;
       points = [];
@@ -935,6 +945,8 @@
       diag.innerHTML  = s.diag;
       tag.innerText   = s.tagText;
       tag.style.color = s.tagColor;
+      // Run vital alerts after scenario update
+      checkVitals();
 
       list.innerHTML = s.checks.map(c =>
         `<label class="check-item" style="border-left-color:${c.color}">
