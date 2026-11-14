@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BioOrbit-Edge | Autonomous Spaceflight Health Monitoring & CDSS</title>
+  <style>
+    :root {
+      --bg-space: #070b19;
+      --panel-bg: rgba(14, 23, 47, 0.85);
+      --panel-border: rgba(56, 189, 248, 0.25);
+      --accent-cyan: #38bdf8;
+      --accent-blue: #2563eb;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background: var(--bg-space);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Top Mission Header */
+    header {
+      background: rgba(11, 19, 43, 0.95);
+      border-bottom: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-badge {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: white;
+      font-weight: 900;
+      font-size: 14px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      letter-spacing: 1px;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+    }
+
+    .brand-title {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: #fff;
+    }
+    .brand-sub {
+      font-size: 11px;
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .mission-telemetry-strip {
+      display: flex;
+      gap: 24px;
+      font-size: 12px;
+    }
+
+    .telemetry-item {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+    .telemetry-label {
+      color: var(--text-muted);
+      font-size: 10px;
+      text-transform: uppercase;
+    }
+    .telemetry-val {
+      font-family: "Courier New", Courier, monospace;
+      font-weight: 700;
+      color: var(--accent-cyan);
+    }
+
+    /* Main Grid Layout */
+    .dashboard-container {
+      flex: 1;
+      padding: 20px;
+      max-width: 1440px;
+      margin: 0 auto;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 280px 1fr 340px;
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 18px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent-cyan);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 8px;
+    }
+
+    /* Left Column: Crew Roster */
+    .crew-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .crew-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .crew-card:hover, .crew-card.active {
+      background: rgba(56, 189, 248, 0.12);
+      border-color: var(--accent-cyan);
+      transform: translateX(4px);
+    }
+
+    .crew-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #1e293b;
+      border: 2px solid var(--accent-cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .crew-info h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .crew-info p {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .status-pill {
+      margin-left: auto;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+    }
+    .status-nominal {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--accent-emerald);
+      border: 1px solid var(--accent-emerald);
+    }
+    .status-warning {
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--accent-amber);
+      border: 1px solid var(--accent-amber);
+    }
+    .status-critical {
+      background: rgba(244, 63, 94, 0.2);
+      color: var(--accent-rose);
+      border: 1px solid var(--accent-rose);
+      animation: pulse 1s infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { opacity: 0.7; }
+      to { opacity: 1; transform: scale(1.05); }
+    }
+
+    /* Simulation Control Buttons */
+    .sim-btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .sim-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #cbd5e1;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s;
+    }
+    .sim-btn:hover {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: var(--accent-cyan);
+      color: #fff;
+    }
+    .sim-btn.active {
+      background: var(--accent-blue);
+      border-color: var(--accent-cyan);
+      color: #fff;
+    }
+
+    /* Center Column: Live Monitor & ECG */
+    .vitals-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .vital-tile {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .vital-name {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .vital-value {
+      font-size: 26px;
+      font-weight: 800;
+      font-family: "Courier New", Courier, monospace;
+      color: #fff;
+    }
+    .vital-unit {
+      font-size: 11px;
+      color: var(--accent-cyan);
+      font-weight: 400;
+    }
+    .vital-baseline {
+      font-size: 10px;
+      color: #64748b;
+    }
+
+    /* ECG Canvas */
+    .ecg-container {
+      background: #040711;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 8px;
+      padding: 10px;
+      position: relative;
+    }
+    .ecg-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--accent-cyan);
+      margin-bottom: 6px;
+      font-family: monospace;
+    }
+    canvas#ecgCanvas {
+      width: 100%;
+      height: 140px;
+      display: block;
+      background: radial-gradient(circle, rgba(2, 132, 199, 0.05) 0%, rgba(4, 7, 17, 0.9) 100%);
+    }
+
+    /* Right Column: CDSS Diagnostic Guidance */
+    .cdss-alert-box {
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 12.5px;
+      line-height: 1.5;
+    }
+    .alert-normal {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #a7f3d0;
+    }
+    .alert-danger {
+      background: rgba(244, 63, 94, 0.15);
+      border: 1px solid rgba(244, 63, 94, 0.5);
+      color: #fecdd3;
+    }
+
+    .workflow-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .workflow-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 8px 10px;
+      border-radius: 6px;
+      border-left: 3px solid var(--accent-cyan);
+    }
+    .workflow-checkbox {
+      margin-top: 2px;
+      cursor: pointer;
+    }
+
+    /* Delay-Tolerant Network Monitor */
+    .dtn-box {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px dashed rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      padding: 10px;
+      font-size: 11.5px;
+      color: #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    /* Bottom Info & Presentation Tab */
+    footer {
+      background: rgba(7, 11, 25, 0.95);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 14px 24px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header>
+    <div class="brand">
+      <div class="logo-badge">NASA SPACE APPS</div>
+      <div>
+        <div class="brand-title">BioOrbit-Edge Cockpit</div>
+        <div class="brand-sub">Autonomous Spaceflight Health & CDSS</div>
+      </div>
+    </div>
+
+    <div class="mission-telemetry-strip">
+      <div class="telemetry-item">
+        <span class="telemetry-label">Mission Transit</span>
+        <span class="telemetry-val">Mars Transit (MET Day 142)</span>
+      </div>
+      <div class="telemetry-item">
+        <span class="telemetry-label">1-Way Mars Comm Delay</span>
+        <span class="telemetry-val" id="commDelay">21m 48s</span>
+      </div>
+      <div class="telemetry-item">
+        <span class="telemetry-label">Edge Node Status</span>
+        <span class="telemetry-val" style="color:var(--accent-emerald);">● ONBOARD AUTONOMOUS</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Grid Dashboard -->
+  <main class="dashboard-container">
+
+    <!-- LEFT COLUMN: Roster & Anomaly Simulation Controls -->
+    <aside style="display:flex; flex-direction:column; gap: 20px;">
+      
+      <!-- Crew Selection -->
+      <div class="card">
+        <div class="card-title">
+          <span>Crew Biosensors</span>
+          <span style="font-size:10px; color:var(--text-muted);">3 Active</span>
+        </div>
+        <div class="crew-list">
+          <div class="crew-card active" onclick="selectCrew(0)">
+            <div class="crew-avatar">ER</div>
+            <div class="crew-info">
+              <h4>Dr. Elena Rostova</h4>
+              <p>Commander (In EVA Suit)</p>
+            </div>
+            <span class="status-pill status-nominal" id="crew0-status">Nominal</span>
+          </div>
+
+          <div class="crew-card" onclick="selectCrew(1)">
+            <div class="crew-avatar">MC</div>
+            <div class="crew-info">
+              <h4>Marcus Chen</h4>
+              <p>Flight Engineer</p>
+            </div>
+            <span class="status-pill status-nominal">Nominal</span>
+          </div>
+
+          <div class="crew-card" onclick="selectCrew(2)">
+            <div class="crew-avatar">SM</div>
+            <div class="crew-info">
+              <h4>Sarah Miller</h4>
+              <p>Science Specialist</p>
+            </div>
+            <span class="status-pill status-nominal">Nominal</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Simulation Scenario Trigger -->
+      <div class="card">
+        <div class="card-title">
+          <span>In-Flight Scenario Injector</span>
+          <span style="font-size:10px; color:var(--accent-amber);">Simulator</span>
+        </div>
+        <p style="font-size:11.5px; color:var(--text-muted);">
+          Trigger real spaceflight health anomalies to test autonomous edge response without Earth Mission Control:
+        </p>
+        <div class="sim-btn-group">
+          <button class="sim-btn active" onclick="setScenario('normal')">
+            🟢 1. Normal Baseline Microgravity
+          </button>
+          <button class="sim-btn" onclick="setScenario('arrhythmia')">
+            🔴 2. EVA Ventricular Ectopy & Heat Stress
+          </button>
+          <button class="sim-btn" onclick="setScenario('sans')">
+            🟡 3. SANS Fluid Shift & Intracranial Pressure
+          </button>
+          <button class="sim-btn" onclick="setScenario('radiation')">
+            🟣 4. Solar Particle Event (SPE) Radiation
+          </button>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- CENTER COLUMN: Real-Time Vitals & Waveform Stream -->
+    <section style="display:flex; flex-direction:column; gap: 20px;">
+      
+      <!-- Live 6-tile Vitals Monitor -->
+      <div class="card">
+        <div class="card-title">
+          <span id="crewNameTitle">Live Telemetry: Dr. Elena Rostova</span>
+          <span style="font-size:11px; color:var(--accent-emerald);">Continuous Edge Telemetry</span>
+        </div>
+
+        <div class="vitals-grid">
+          <div class="vital-tile">
+            <span class="vital-name">Heart Rate (ECG)</span>
+            <div><span class="vital-value" id="val-hr">72</span> <span class="vital-unit">BPM</span></div>
+            <span class="vital-baseline">Target: 60 - 90 BPM</span>
+          </div>
+
+          <div class="vital-tile">
+            <span class="vital-name">Blood Oxygen (SpO₂)</span>
+            <div><span class="vital-value" id="val-spo2">98.5</span> <span class="vital-unit">%</span></div>
+            <span class="vital-baseline">Target: &gt; 95.0%</span>
+          </div>
+
+          <div class="vital-tile">
+            <span class="vital-name">Core Body Temp</span>
+            <div><span class="vital-value" id="val-temp">37.1</span> <span class="vital-unit">°C</span></div>
+            <span class="vital-baseline">Normal: 36.8 - 37.4 °C</span>
+          </div>
+
+          <div class="vital-tile">
+            <span class="vital-name">Heart Rate Variability</span>
+            <div><span class="vital-value" id="val-hrv">64</span> <span class="vital-unit">ms</span></div>
+            <span class="vital-baseline">Autonomic Balance</span>
+          </div>
+
+          <div class="vital-tile">
+            <span class="vital-name">Blood Pressure</span>
+            <div><span class="vital-value" id="val-bp">118/78</span> <span class="vital-unit">mmHg</span></div>
+            <span class="vital-baseline">Post-fluid shift adapt</span>
+          </div>
+
+          <div class="vital-tile">
+            <span class="vital-name">Radiation Dosimeter</span>
+            <div><span class="vital-value" id="val-rad">0.48</span> <span class="vital-unit">mSv/day</span></div>
+            <span class="vital-baseline">GCR Deep Space Background</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real-Time Animated ECG Rhythm Strip -->
+      <div class="card">
+        <div class="card-title">
+          <span>Continuous Lead-II Waveform Stream (Onboard Denoising)</span>
+          <span id="ecgRhythmTag" style="font-size:11px; color:var(--accent-emerald);">Sinus Rhythm (Normal)</span>
+        </div>
+        <div class="ecg-container">
+          <div class="ecg-header">
+            <span>Sweep: 25mm/s</span>
+            <span>Gain: 10mm/mV</span>
+            <span>Filter: Wavelet Edge Denoising Active</span>
+          </div>
+          <canvas id="ecgCanvas" width="800" height="140"></canvas>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- RIGHT COLUMN: Autonomous Clinical Decision Support System (CDSS) -->
+    <aside style="display:flex; flex-direction:column; gap: 20px;">
+      
+      <div class="card">
+        <div class="card-title">
+          <span>Autonomous CDSS Engine</span>
+          <span style="font-size:10px; color:var(--accent-cyan);">NASA ExMC Logic</span>
+        </div>
+
+        <div class="cdss-alert-box alert-normal" id="cdssAlertBox">
+          <strong>System Diagnosis:</strong>
+          <p id="cdssDiagnosis">All physiological biomarkers within individual personalized microgravity adaptation bounds. No clinical intervention indicated.</p>
+        </div>
+
+        <div>
+          <span style="font-size:11px; text-transform:uppercase; font-weight:700; color:var(--text-muted);">
+            Immediate Action Checklist:
+          </span>
+          <div class="workflow-list" id="actionChecklist">
+            <label class="workflow-item">
+              <input type="checkbox" class="workflow-checkbox" checked disabled>
+              <span>Maintain daily 2.5-hr resistive ARED countermeasure</span>
+            </label>
+            <label class="workflow-item">
+              <input type="checkbox" class="workflow-checkbox" checked disabled>
+              <span>Routine hydration schedule (750ml electrolyte mix)</span>
+            </label>
+            <label class="workflow-item">
+              <input type="checkbox" class="workflow-checkbox" checked disabled>
+              <span>Circadian blue-depleted cabin lighting transition</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Delay-Tolerant Networking Packet Sync Status -->
+        <div class="dtn-box">
+          <div style="display:flex; justify-content:space-between; font-weight:700;">
+            <span>DTN Packet Telemetry Queue</span>
+            <span style="color:var(--accent-cyan);">RFC 5050 Bundle</span>
+          </div>
+          <div>Pending Earth Uplink: <strong id="dtnQueue">3 Bundles (Compressed)</strong></div>
+          <div style="font-size:10px; color:#94a3b8;">
+            *Tele-surgery & real-time doctor support unavailable due to Mars distance. All treatments executed autonomously.
+          </div>
+        </div>
+
+      </div>
+
+    </aside>
+
+  </main>
+
+  <footer>
+    <strong>BioOrbit-Edge:</strong> Autonomous Spaceflight Health Monitoring & Clinical Decision Support System • Developed for the NASA Space Apps Challenge
+  </footer>
+
+  <script>
+    // State management
+    let currentScenario = 'normal';
+    let hrVal = 72;
+    let spo2Val = 98.5;
+    let tempVal = 37.1;
+    let hrvVal = 64;
+    let bpVal = "118/78";
+    let radVal = 0.48;
+
+    // ECG Canvas setup
+    const canvas = document.getElementById('ecgCanvas');
+    const ctx = canvas.getContext('2d');
+    let x = 0;
+    let points = [];
+    const maxPoints = canvas.width;
+
+    function drawGrid() {
+      ctx.strokeStyle = 'rgba(2, 132, 199, 0.08)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < canvas.width; i += 20) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, canvas.height);
+        ctx.stroke();
+      }
+      for (let j = 0; j < canvas.height; j += 20) {
+        ctx.beginPath();
+        ctx.moveTo(0, j);
+        ctx.lineTo(canvas.width, j);
+        ctx.stroke();
+      }
+    }
+
+    let t = 0;
+    function getECGY(time) {
+      const mid = canvas.height / 2;
+      let cycle = time % 60;
+      
+      if (currentScenario === 'arrhythmia') {
+        cycle = time % 40; // faster tachycardia
+        if (cycle > 8 && cycle < 14) {
+          // Premature ventricular contraction (PVC) spike
+          return mid - 45 + Math.sin(cycle) * 10;
+        }
+      }
+
+      // Normal P-Q-R-S-T wave simulation
+      if (cycle >= 18 && cycle < 22) return mid - 8; // P wave
+      if (cycle >= 24 && cycle < 26) return mid + 6; // Q dip
+      if (cycle >= 26 && cycle < 29) return mid - 55; // R peak
+      if (cycle >= 29 && cycle < 32) return mid + 16; // S dip
+      if (cycle >= 36 && cycle < 42) return mid - 14; // T wave
+      return mid + (Math.random() - 0.5) * 2; // baseline baseline drift
+    }
+
+    function renderECG() {
+      // Semi-transparent clear for smooth phosphor radar sweep effect
+      ctx.fillStyle = 'rgba(4, 7, 17, 0.2)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      drawGrid();
+
+      ctx.strokeStyle = currentScenario === 'arrhythmia' ? '#f43f5e' : '#38bdf8';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+
+      const y = getECGY(t);
+      points.push(y);
+      if (points.length > canvas.width) {
+        points.shift();
+      }
+
+      for (let i = 0; i < points.length; i++) {
+        if (i === 0) ctx.moveTo(i, points[i]);
+        else ctx.lineTo(i, points[i]);
+      }
+      ctx.stroke();
+
+      t += (currentScenario === 'arrhythmia' ? 2 : 1.2);
+      requestAnimationFrame(renderECG);
+    }
+    renderECG();
+
+    // Scenario Switcher
+    function setScenario(scen) {
+      currentScenario = scen;
+      document.querySelectorAll('.sim-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+
+      const alertBox = document.getElementById('cdssAlertBox');
+      const diag = document.getElementById('cdssDiagnosis');
+      const checklist = document.getElementById('actionChecklist');
+      const ecgTag = document.getElementById('ecgRhythmTag');
+      const statusPill = document.getElementById('crew0-status');
+
+      if (scen === 'normal') {
+        hrVal = 72; spo2Val = 98.5; tempVal = 37.1; hrvVal = 64; bpVal = "118/78"; radVal = 0.48;
+        statusPill.className = "status-pill status-nominal";
+        statusPill.innerText = "Nominal";
+        alertBox.className = "cdss-alert-box alert-normal";
+        diag.innerHTML = "All physiological biomarkers within individual personalized microgravity adaptation bounds. No clinical intervention indicated.";
+        ecgTag.innerText = "Sinus Rhythm (Normal)";
+        ecgTag.style.color = "var(--accent-emerald)";
+        checklist.innerHTML = `
+          <label class="workflow-item"><input type="checkbox" class="workflow-checkbox" checked disabled><span>Maintain daily 2.5-hr resistive ARED countermeasure</span></label>
+          <label class="workflow-item"><input type="checkbox" class="workflow-checkbox" checked disabled><span>Routine hydration schedule (750ml electrolyte mix)</span></label>
+          <label class="workflow-item"><input type="checkbox" class="workflow-checkbox" checked disabled><span>Circadian blue-depleted cabin lighting transition</span></label>
+        `;
+      } else if (scen === 'arrhythmia') {
+        hrVal = 138; spo2Val = 94.2; tempVal = 38.6; hrvVal = 21; bpVal = "152/96"; radVal = 0.52;
+        statusPill.className = "status-pill status-critical";
+        statusPill.innerText = "CRITICAL";
+        alertBox.className = "cdss-alert-box alert-danger";
+        diag.innerHTML = "<strong>CRITICAL ANOMALY:</strong> Ventricular Ectopy accompanied by acute EVA hyperthermia (38.6°C) and sympathetic overload. High risk of decompensation.";
+        ecgTag.innerText = "Ventricular Tachycardia / Ectopy";
+        ecgTag.style.color = "var(--accent-rose)";
+        checklist.innerHTML = `
+          <label class="workflow-item" style="border-left-color:var(--accent-rose);"><input type="checkbox" class="workflow-checkbox"><span><strong>ABORT EVA:</strong> Ingress airlock and repressurize cabin</span></label>
+          <label class="workflow-item" style="border-left-color:var(--accent-rose);"><input type="checkbox" class="workflow-checkbox"><span>Activate Liquid Cooling & Ventilation Garment (LCVG) flush</span></label>
+          <label class="workflow-item" style="border-left-color:var(--accent-rose);"><input type="checkbox" class="workflow-checkbox"><span>Administer oral Metoprolol 25mg per ExMC formulary card #4</span></label>
+          <label class="workflow-item" style="border-left-color:var(--accent-rose);"><input type="checkbox" class="workflow-checkbox"><span>Continuous 12-lead telemetry tracking (Earth notification logged)</span></label>
+        `;
+      } else if (scen === 'sans') {
+        hrVal = 68; spo2Val = 97.8; tempVal = 37.0; hrvVal = 48; bpVal = "136/88"; radVal = 0.49;
+        statusPill.className = "status-pill status-warning";
+        statusPill.innerText = "WARNING";
+        alertBox.className = "cdss-alert-box alert-danger";
+        diag.innerHTML = "<strong>WARNING: SANS Progression Detected:</strong> Jugular vein engorgement and elevated optic nerve sheath diameter (ONSD &gt; 5.9mm). Cephalad fluid redistribution active.";
+        ecgTag.innerText = "Sinus Bradycardia (Elevated ICP)";
+        ecgTag.style.color = "var(--accent-amber)";
+        checklist.innerHTML = `
+          <label class="workflow-item" style="border-left-color:var(--accent-amber);"><input type="checkbox" class="workflow-checkbox"><span>Initiate Lower Body Negative Pressure (LBNP) suit for 45 mins</span></label>
+          <label class="workflow-item" style="border-left-color:var(--accent-amber);"><input type="checkbox" class="workflow-checkbox"><span>Perform portable ultrasound optic nerve sheath assessment</span></label>
+          <label class="workflow-item" style="border-left-color:var(--accent-amber);"><input type="checkbox" class="workflow-checkbox"><span>Reduce dietary sodium intake to &lt; 2.0g/day</span></label>
+        `;
+      } else if (scen === 'radiation') {
+        hrVal = 82; spo2Val = 98.0; tempVal = 37.3; hrvVal = 55; bpVal = "124/82"; radVal = 8.40;
+        statusPill.className = "status-pill status-critical";
+        statusPill.innerText = "SPE ALERT";
+        alertBox.className = "cdss-alert-box alert-danger";
+        diag.innerHTML = "<strong>RADIATION STORM ALERT:</strong> Solar Particle Event (SPE) detected. Flux rate 8.40 mSv/day exceeds safe threshold. Risk of acute prodromal syndrome.";
+        ecgTag.innerText = "Sinus Rhythm (Radiation Advisory)";
+        ecgTag.style.color = "var(--accent-rose)";
+        checklist.innerHTML = `
+          <label class="workflow-item" style="border-left-color:var(--accent-rose);"><input type="checkbox" class="workflow-checkbox"><span>All crew proceed immediately to spacecraft storm shelter (water wall)</span></label>
+          <label class="workflow-item" style="border-left-color:var(--accent-rose);"><input type="checkbox" class="workflow-checkbox"><span>Verify dosimeter active calibration and log individual accum dose</span></label>
+          <label class="workflow-item" style="border-left-color:var(--accent-rose);"><input type="checkbox" class="workflow-checkbox"><span>Prepare prophylactic antiemetic (Ondansetron 4mg) if nausea onset</span></label>
+        `;
+      }
+      updateVitalsDisplay();
+    }
+
+    function updateVitalsDisplay() {
+      document.getElementById('val-hr').innerText = hrVal;
+      document.getElementById('val-spo2').innerText = spo2Val;
+      document.getElementById('val-temp').innerText = tempVal;
+      document.getElementById('val-hrv').innerText = hrvVal;
+      document.getElementById('val-bp').innerText = bpVal;
+      document.getElementById('val-rad').innerText = radVal;
+    }
+
+    function selectCrew(index) {
+      document.querySelectorAll('.crew-card').forEach((c, idx) => {
+        c.classList.toggle('active', idx === index);
+      });
+      const names = ["Dr. Elena Rostova", "Marcus Chen", "Sarah Miller"];
+      document.getElementById('crewNameTitle').innerText = "Live Telemetry: " + names[index];
+    }
+  </script>
+</body>
+</html>

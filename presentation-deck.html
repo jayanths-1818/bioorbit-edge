@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BioOrbit-Edge - NASA Space Apps Demo Deck</title>
+  <style>
+    :root {
+      --bg-dark: #070d1e;
+      --card-bg: #0f172a;
+      --card-border: #38bdf8;
+      --accent-cyan: #0284c7;
+      --accent-blue: #0b3d91;
+      --accent-amber: #d97706;
+      --accent-emerald: #059669;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    body {
+      background: #070d1e;
+      color: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top navigation bar */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 28px;
+      background: #0b132b;
+      border-bottom: 2px solid #1e293b;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 9999px;
+      background: #0284c7;
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    button {
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    button.secondary {
+      background: #334155;
+    }
+    button.secondary:hover {
+      background: #475569;
+    }
+
+    .print-tip {
+      font-size: 12px;
+      color: #cbd5e1;
+      background: rgba(2, 132, 199, 0.2);
+      border: 1px solid #0284c7;
+      padding: 6px 14px;
+      border-radius: 6px;
+    }
+
+    /* Presentation Deck Canvas */
+    .deck-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+      padding: 30px 20px 60px 20px;
+      background: #070d1e;
+    }
+
+    /* Slide Card */
+    .slide {
+      width: 100%;
+      max-width: 1050px;
+      min-height: 580px;
+      background: #ffffff;
+      color: #0f172a;
+      border-radius: 14px;
+      border: 3px solid #0b3d91;
+      padding: 40px 48px;
+      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .slide-footer-tag {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 12px;
+      margin-top: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Slide Header */
+    .slide-header {
+      margin-bottom: 20px;
+    }
+    .slide-tag {
+      color: #0284c7;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    .slide-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: #0b3d91;
+      line-height: 1.25;
+    }
+    .slide-subtitle {
+      font-size: 15px;
+      color: #475569;
+      margin-top: 6px;
+      font-weight: 500;
+    }
+
+    .slide-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    /* Grids */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+
+    .info-card {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-left: 4px solid #0b3d91;
+      border-radius: 8px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .info-card h4 {
+      color: #0b3d91;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .info-card p {
+      color: #1e293b;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .highlight-card {
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      border-left: 4px solid #0284c7;
+    }
+    .highlight-card h4 {
+      color: #0369a1;
+    }
+
+    /* Title Slide Specifics */
+    .title-slide {
+      text-align: center;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+    .title-slide h1 {
+      font-size: 44px;
+      font-weight: 900;
+      color: #0b3d91;
+      letter-spacing: -0.5px;
+    }
+    .title-slide p.hero-desc {
+      font-size: 17px;
+      color: #334155;
+      max-width: 780px;
+      line-height: 1.6;
+      font-weight: 500;
+    }
+    .meta-box {
+      margin-top: 15px;
+      display: flex;
+      gap: 20px;
+      background: #f1f5f9;
+      padding: 10px 24px;
+      border-radius: 9999px;
+      border: 1px solid #cbd5e1;
+      font-size: 12.5px;
+      color: #475569;
+    }
+    .meta-box strong {
+      color: #0b3d91;
+    }
+
+    /* Pipeline nodes */
+    .pipeline {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .step-node {
+      flex: 1;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-top: 4px solid #0b3d91;
+      border-radius: 8px;
+      padding: 14px 10px;
+      text-align: center;
+    }
+    .step-arrow {
+      color: #0284c7;
+      font-size: 18px;
+      font-weight: 900;
+    }
+    .step-num {
+      font-size: 10px;
+      font-weight: 800;
+      color: #0284c7;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .step-title {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #0b3d91;
+    }
+    .step-desc {
+      font-size: 11px;
+      color: #475569;
+      margin-top: 4px;
+      line-height: 1.35;
+    }
+
+    /* Print styling: guaranteed flawless 7 pages in every browser */
+    @page {
+      size: A4 landscape;
+      margin: 8mm;
+    }
+
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+      }
+      header {
+        display: none !important;
+      }
+      .deck-container {
+        padding: 0 !important;
+        gap: 0 !important;
+        background: #ffffff !important;
+      }
+      .slide {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        page-break-after: always !important;
+        break-after: page !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        width: 100% !important;
+        height: 185mm !important;
+        min-height: 185mm !important;
+        max-height: 185mm !important;
+        border: 2px solid #0b3d91 !important;
+        border-radius: 8px !important;
+        box-shadow: none !important;
+        margin: 0 0 20mm 0 !important;
+        padding: 24px 32px !important;
+        background: #ffffff !important;
+      }
+      .slide:last-child {
+        page-break-after: auto !important;
+        break-after: auto !important;
+        margin-bottom: 0 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div style="display:flex; align-items:center; gap: 14px;">
+      <span class="badge">NASA Space Apps Challenge</span>
+      <span style="font-weight: 700; font-size: 15px; color:#ffffff;">BioOrbit-Edge (Official 7-Slide Presentation)</span>
+    </div>
+
+    <div class="controls">
+      <span class="print-tip">💡 Tip: In print settings, select <b>Landscape</b>. All 7 slides will export with bold, clear text!</span>
+      <button onclick="window.print()">🖨️ Export All 7 Slides to PDF</button>
+    </div>
+  </header>
+
+  <main class="deck-container">
+
+    <!-- SLIDE 1: Title & Introduction -->
+    <div class="slide title-slide" id="slide-1">
+      <span class="badge" style="background:#0b3d91;">NASA Space Apps Challenge Demo</span>
+      <h1>BioOrbit-Edge</h1>
+      <p class="hero-desc">
+        Autonomous Edge-AI Health Monitoring & Predictive Clinical Decision Support System for Long-Duration Deep Space Exploration
+      </p>
+      <div class="meta-box">
+        <div><strong>Mission Scope:</strong> Artemis Lunar Base & Crewed Mars Transit</div>
+        <div><strong>Architecture:</strong> Zero-Cloud Edge CDSS</div>
+        <div><strong>Submission Rule:</strong> Slide 1 of 7 (Verified)</div>
+      </div>
+      <div class="slide-footer-tag">
+        <span>BioOrbit-Edge Project Demo</span>
+        <span>Slide 1 / 7</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 2: The Challenge -->
+    <div class="slide" id="slide-2">
+      <div class="slide-header">
+        <div class="slide-tag">Problem Statement</div>
+        <div class="slide-title">The Challenge: Medical Autonomy in Deep Space</div>
+        <div class="slide-subtitle">Why traditional Mission Control telemedicine fails beyond Low Earth Orbit</div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-3">
+          <div class="info-card highlight-card">
+            <h4>📡 Latency & Blackouts</h4>
+            <p>Mars communication delays span <strong>4 to 24 minutes one-way</strong> (up to 44-min round trip), alongside multi-week solar conjunction blackouts. Real-time emergency tele-surgery is physically impossible.</p>
+          </div>
+          <div class="info-card highlight-card">
+            <h4>🧬 Extreme Microgravity Shifts</h4>
+            <p>Cephalad fluid redistribution, rapid muscle/bone mineral loss, cardiovascular deconditioning, and Spaceflight-Associated Neuro-ocular Syndrome (SANS) drastically distort terrestrial diagnostic baselines.</p>
+          </div>
+          <div class="info-card highlight-card">
+            <h4>⏳ The Zero-Abort Reality</h4>
+            <p>Unlike the ISS, deep-space transits offer <strong>no emergency abort or rapid evacuation</strong> to Earth hospitals. Astronauts must act as their own autonomous flight physicians during acute trauma.</p>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer-tag">
+        <span>BioOrbit-Edge Project Demo</span>
+        <span>Slide 2 / 7</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 3: The Solution -->
+    <div class="slide" id="slide-3">
+      <div class="slide-header">
+        <div class="slide-tag">Innovation & Concept</div>
+        <div class="slide-title">Our Solution: BioOrbit-Edge Architecture</div>
+        <div class="slide-subtitle">An edge-native, zero-cloud medical intelligence system for exploration spacecraft</div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-3">
+          <div class="info-card">
+            <h4>1. Multi-Modal Biosensors</h4>
+            <p>Non-invasive integration with continuous ECG, photoplethysmography (PPG), bio-impedance patches, core body temperature, and radiation dosimeters.</p>
+          </div>
+          <div class="info-card highlight-card">
+            <h4>2. Onboard Predictive Edge AI</h4>
+            <p>Lightweight temporal transformer models that continuously train personalized microgravity baselines and detect pre-symptomatic physiological decay locally.</p>
+          </div>
+          <div class="info-card">
+            <h4>3. Autonomous CDSS Engine</h4>
+            <p>Offline clinical decision support aligned with NASA Exploration Medical Capability (ExMC) ontologies, generating real-time triage and countermeasure protocols.</p>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer-tag">
+        <span>BioOrbit-Edge Project Demo</span>
+        <span>Slide 3 / 7</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 4: How It Works (Pipeline) -->
+    <div class="slide" id="slide-4">
+      <div class="slide-header">
+        <div class="slide-tag">System Engineering</div>
+        <div class="slide-title">How It Works: End-to-End Edge Pipeline</div>
+        <div class="slide-subtitle">Zero-bandwidth local processing with asynchronous Earth synchronization</div>
+      </div>
+      <div class="slide-body">
+        <div class="pipeline">
+          <div class="step-node">
+            <div class="step-num">Step 01</div>
+            <div class="step-title">Sensor Ingestion</div>
+            <div class="step-desc">Continuous telemetry capture from crew wearables</div>
+          </div>
+          <div class="step-arrow">➔</div>
+          <div class="step-node">
+            <div class="step-num">Step 02</div>
+            <div class="step-title">Wavelet Denoising</div>
+            <div class="step-desc">Strips severe exercise motion artifacts</div>
+          </div>
+          <div class="step-arrow">➔</div>
+          <div class="step-node highlight-card">
+            <div class="step-num">Step 03</div>
+            <div class="step-title">Edge AI Inference</div>
+            <div class="step-desc">Personalized baseline anomaly scoring (&lt;20ms)</div>
+          </div>
+          <div class="step-arrow">➔</div>
+          <div class="step-node">
+            <div class="step-num">Step 04</div>
+            <div class="step-title">Actionable Triage</div>
+            <div class="step-desc">Low-cognitive-load guidance on Crew Console</div>
+          </div>
+          <div class="step-arrow">➔</div>
+          <div class="step-node">
+            <div class="step-num">Step 05</div>
+            <div class="step-title">DTN Sync</div>
+            <div class="step-desc">Compressed telemetry packets queued for Earth</div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer-tag">
+        <span>BioOrbit-Edge Project Demo</span>
+        <span>Slide 4 / 7</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 5: Key Features & Demonstration -->
+    <div class="slide" id="slide-5">
+      <div class="slide-header">
+        <div class="slide-tag">Validation & Demonstration</div>
+        <div class="slide-title">Demonstration: Simulated In-Flight Anomaly</div>
+        <div class="slide-subtitle">Autonomous detection and intervention during a simulated Mars transit episode</div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="info-card highlight-card">
+            <h4 style="color:#b45309;">🚨 Simulated Scenario: Acute Arrhythmia & Fatigue</h4>
+            <p>During a high-workload lunar surface sortie, Astronaut A experiences progressive cardiac drift, elevated core temperature (38.4°C), and microvascular strain.</p>
+            <p style="margin-top: 8px; color: #b45309;"><strong>Without BioOrbit:</strong> Earth advice is delayed 30 minutes; risk of acute syncope or cardiac decompensation.</p>
+          </div>
+          <div class="info-card">
+            <h4 style="color:#047857;">⚡ BioOrbit Immediate Autonomous Response</h4>
+            <p><strong>00:03s:</strong> Local edge inference flags early ventricular ectopy exceeding personalized microgravity baseline.</p>
+            <p style="margin-top: 6px;"><strong>00:05s:</strong> Crew Console triggers visual checklist: abort EVA, rehydrate with isotonic electrolyte protocol, administer targeted beta-blocker dosage.</p>
+            <p style="margin-top: 6px; color: #047857;"><strong>Result:</strong> Crew member stabilizes in-situ with zero Earth intervention.</p>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer-tag">
+        <span>BioOrbit-Edge Project Demo</span>
+        <span>Slide 5 / 7</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 6: Value & Terrestrial Impact -->
+    <div class="slide" id="slide-6">
+      <div class="slide-header">
+        <div class="slide-tag">Impact & Spin-Offs</div>
+        <div class="slide-title">Why It Matters: Deep Space & Earth Benefits</div>
+        <div class="slide-subtitle">Extending space medicine innovation to remote Earth healthcare</div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="info-card">
+            <h4>🚀 Deep Space Impact</h4>
+            <p>• <strong>Crew Survival:</strong> Protects the "Golden Hour" of medical trauma without waiting for delayed communications.</p>
+            <p>• <strong>Cognitive Readiness:</strong> Mitigates sleep debt and circadian desynchrony before critical flight burns.</p>
+            <p>• <strong>Mission Assurance:</strong> Prevents premature mission aborts and multi-billion-dollar losses.</p>
+          </div>
+          <div class="info-card highlight-card">
+            <h4>🌍 Earth Dual-Use Spin-Offs</h4>
+            <p>• <strong>Polar & Maritime Isolation:</strong> Automated doctor for Antarctic bases, submarines, and container shipping.</p>
+            <p>• <strong>Disaster Relief & Combat Triage:</strong> Edge diagnostics in blackout zones with destroyed telecom infrastructure.</p>
+            <p>• <strong>Rural Healthcare:</strong> Provides expert-level clinical triage in clinics without specialized cardiologists.</p>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer-tag">
+        <span>BioOrbit-Edge Project Demo</span>
+        <span>Slide 6 / 7</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 7: Roadmap & Conclusion -->
+    <div class="slide" id="slide-7">
+      <div class="slide-header">
+        <div class="slide-tag">Summary & Next Steps</div>
+        <div class="slide-title">Tech Stack, Roadmap & Project Summary</div>
+        <div class="slide-subtitle">From prototype to flight-ready operational payload</div>
+      </div>
+      <div class="slide-body">
+        <div class="grid-3" style="margin-bottom: 14px;">
+          <div class="info-card">
+            <h4>🛠️ Open Tech Stack</h4>
+            <p>• <strong>Inference:</strong> ONNX Runtime / PyTorch<br>• <strong>Protocols:</strong> NASA ExMC Ontology, DTN (RFC 5050)<br>• <strong>UI:</strong> React / WebGL Crew Console</p>
+          </div>
+          <div class="info-card">
+            <h4>📅 18-Month Flight Plan</h4>
+            <p>• <strong>Phase 1:</strong> Parabolic flight microgravity testing<br>• <strong>Phase 2:</strong> Analogue mission trial (CHAPEA/HERA)<br>• <strong>Phase 3:</strong> ISS payload flight demonstration</p>
+          </div>
+          <div class="info-card highlight-card">
+            <h4>✨ Final Verdict</h4>
+            <p>BioOrbit-Edge bridges the critical gap between Earth medical control and autonomous human expansion into deep space.</p>
+          </div>
+        </div>
+        <div style="text-align: center; color: #0b3d91; font-weight: 800; font-size: 14px;">
+          Thank You, NASA Space Apps Challenge Evaluation Committee!
+        </div>
+      </div>
+      <div class="slide-footer-tag">
+        <span>BioOrbit-Edge Project Demo</span>
+        <span>Slide 7 / 7</span>
+      </div>
+    </div>
+
+  </main>
+
+</body>
+</html>
