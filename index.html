@@ -2,12 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BioOrbit-Edge | Autonomous Spaceflight Health & CDSS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BioOrbit-Edge">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#060913">
+  <link rel="apple-touch-icon" href="https://em-content.zobj.net/source/apple/354/rocket_1f680.png">
+  <title>BioOrbit-Edge | Spaceflight Health CDSS</title>
+
   <style>
     :root {
       --bg-dark: #060913;
-      --card-bg: rgba(13, 21, 44, 0.85);
+      --card-bg: rgba(13, 21, 44, 0.92);
       --card-border: rgba(56, 189, 248, 0.25);
       --accent-cyan: #38bdf8;
       --accent-blue: #2563eb;
@@ -16,153 +23,230 @@
       --accent-rose: #f43f5e;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
+      --safe-top: env(safe-area-inset-top);
+      --safe-bottom: env(safe-area-inset-bottom);
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
     }
 
-    body {
+    html, body {
       background: var(--bg-dark);
       color: var(--text-main);
       min-height: 100vh;
+      min-height: -webkit-fill-available;
       display: flex;
       flex-direction: column;
       overflow-x: hidden;
+      overscroll-behavior: none;
     }
 
-    /* Top Navigation */
+    /* ─── HEADER ─── */
     header {
-      background: rgba(10, 17, 36, 0.95);
+      background: rgba(10, 17, 36, 0.97);
       border-bottom: 1px solid rgba(56, 189, 248, 0.25);
-      padding: 12px 24px;
+      padding: 10px 16px;
+      padding-top: calc(10px + var(--safe-top));
       display: flex;
       justify-content: space-between;
       align-items: center;
       position: sticky;
       top: 0;
       z-index: 1000;
-      backdrop-filter: blur(12px);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
     }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    .brand { display: flex; align-items: center; gap: 10px; }
 
     .logo-badge {
       background: linear-gradient(135deg, #0284c7, #2563eb);
       color: #fff;
       font-weight: 900;
-      font-size: 13px;
-      padding: 6px 12px;
+      font-size: 10px;
+      padding: 5px 9px;
+      border-radius: 7px;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+      box-shadow: 0 0 12px rgba(56,189,248,0.3);
+    }
+
+    .brand-name  { font-weight: 800; font-size: 15px; line-height: 1.1; }
+    .brand-sub   { font-size: 9px; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.8px; }
+
+    /* Hamburger Menu Button (mobile) */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 6px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
       border-radius: 8px;
-      letter-spacing: 1px;
-      box-shadow: 0 0 15px rgba(56, 189, 248, 0.35);
+      touch-action: manipulation;
+    }
+    .hamburger span {
+      display: block;
+      width: 20px;
+      height: 2px;
+      background: #fff;
+      border-radius: 2px;
+      transition: all 0.25s;
     }
 
-    .nav-tabs {
-      display: flex;
-      gap: 8px;
-    }
-
-    .nav-btn {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: var(--text-muted);
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-size: 13px;
+    .audio-btn {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #cbd5e1;
+      padding: 7px 11px;
+      border-radius: 7px;
+      font-size: 11px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
+      white-space: nowrap;
+      touch-action: manipulation;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    .audio-btn.on { background: var(--accent-emerald); color: #fff; }
+
+    /* ─── NAV DRAWER (mobile) ─── */
+    .nav-drawer {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(6,9,19,0.97);
+      z-index: 2000;
+      flex-direction: column;
       align-items: center;
-      gap: 6px;
+      justify-content: center;
+      gap: 16px;
+      padding: 40px 24px;
+      animation: slideIn 0.25s ease;
+    }
+    .nav-drawer.open { display: flex; }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: scale(0.97); }
+      to   { opacity: 1; transform: scale(1); }
     }
 
-    .nav-btn:hover {
-      background: rgba(56, 189, 248, 0.15);
+    .drawer-close {
+      position: absolute;
+      top: 20px; right: 20px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
       color: #fff;
+      font-size: 18px;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
     }
 
-    .nav-btn.active {
+    .drawer-btn {
+      width: 100%;
+      max-width: 340px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #cbd5e1;
+      padding: 16px 20px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: left;
+      touch-action: manipulation;
+      transition: all 0.2s;
+    }
+    .drawer-btn.active {
       background: var(--accent-blue);
       border-color: var(--accent-cyan);
       color: #fff;
-      box-shadow: 0 0 12px rgba(37, 99, 235, 0.5);
+      box-shadow: 0 0 16px rgba(37,99,235,0.5);
     }
+
+    /* ─── Desktop Nav Tabs ─── */
+    .nav-tabs-desktop {
+      display: flex;
+      gap: 8px;
+    }
+    .nav-btn {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-muted);
+      padding: 8px 14px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex; align-items: center; gap: 5px;
+      white-space: nowrap;
+    }
+    .nav-btn:hover  { background: rgba(56,189,248,0.15); color: #fff; }
+    .nav-btn.active { background: var(--accent-blue); border-color: var(--accent-cyan); color: #fff; }
 
     .status-strip {
       display: flex;
       align-items: center;
-      gap: 20px;
-      font-size: 12px;
+      gap: 16px;
+      font-size: 11px;
     }
+    .status-item   { display: flex; flex-direction: column; align-items: flex-end; }
+    .status-label  { color: var(--text-muted); font-size: 9px; text-transform: uppercase; }
+    .status-val    { font-family: monospace; font-weight: 700; color: var(--accent-cyan); font-size: 11px; }
 
-    .status-item {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-    }
-    .status-label {
-      color: var(--text-muted);
-      font-size: 10px;
-      text-transform: uppercase;
-    }
-    .status-val {
-      font-family: monospace;
-      font-weight: 700;
-      color: var(--accent-cyan);
-    }
-
-    /* Content Area */
+    /* ─── MAIN ─── */
     main {
       flex: 1;
-      padding: 24px;
+      padding: 16px;
+      padding-bottom: calc(16px + var(--safe-bottom));
       max-width: 1440px;
       margin: 0 auto;
       width: 100%;
     }
 
-    .tab-content {
-      display: none;
-    }
+    .tab-content { display: none; }
     .tab-content.active {
       display: block;
-      animation: fadeIn 0.3s ease;
+      animation: fadeIn 0.25s ease;
     }
-
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; transform: translateY(5px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* Layout Grids */
+    /* ─── COCKPIT GRID ─── */
     .cockpit-grid {
       display: grid;
-      grid-template-columns: 280px 1fr 340px;
-      gap: 20px;
+      grid-template-columns: 270px 1fr 320px;
+      gap: 16px;
     }
 
+    /* ─── CARD ─── */
     .card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 18px;
+      border-radius: 14px;
+      padding: 16px;
       backdrop-filter: blur(10px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 12px;
     }
 
     .card-title {
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 1px;
@@ -170,236 +254,268 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
       padding-bottom: 8px;
     }
 
-    /* Crew Cards */
+    /* ─── CREW CARDS ─── */
     .crew-card {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 8px;
-      padding: 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 11px;
       cursor: pointer;
       transition: all 0.2s;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
+      touch-action: manipulation;
+      -webkit-user-select: none;
+      user-select: none;
     }
-    .crew-card:hover, .crew-card.active {
-      background: rgba(56, 189, 248, 0.15);
+    .crew-card:active, .crew-card.active {
+      background: rgba(56,189,248,0.15);
       border-color: var(--accent-cyan);
     }
+
     .crew-avatar {
-      width: 38px;
-      height: 38px;
+      width: 36px; height: 36px;
       border-radius: 50%;
       background: #1e293b;
       border: 2px solid var(--accent-cyan);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 13px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 12px;
+      flex-shrink: 0;
     }
-    .crew-name {
-      font-size: 13.5px;
-      font-weight: 700;
-      color: #fff;
-    }
-    .crew-role {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
+    .crew-name { font-size: 13px; font-weight: 700; color: #fff; }
+    .crew-role { font-size: 10px; color: var(--text-muted); }
+
     .status-pill {
       margin-left: auto;
-      font-size: 10px;
-      font-weight: 800;
-      padding: 3px 8px;
+      font-size: 9px; font-weight: 800;
+      padding: 3px 7px;
       border-radius: 9999px;
       text-transform: uppercase;
+      flex-shrink: 0;
     }
-    .status-nominal {
-      background: rgba(16, 185, 129, 0.2);
-      color: var(--accent-emerald);
-      border: 1px solid var(--accent-emerald);
-    }
-    .status-critical {
-      background: rgba(244, 63, 94, 0.2);
-      color: var(--accent-rose);
-      border: 1px solid var(--accent-rose);
-      animation: pulse 1s infinite alternate;
-    }
-    @keyframes pulse {
-      from { opacity: 0.7; }
-      to { opacity: 1; transform: scale(1.05); }
-    }
+    .status-nominal  { background: rgba(16,185,129,0.2); color: var(--accent-emerald); border: 1px solid var(--accent-emerald); }
+    .status-critical { background: rgba(244,63,94,0.2);  color: var(--accent-rose);    border: 1px solid var(--accent-rose);    animation: blink 1s infinite alternate; }
+    @keyframes blink { from { opacity: 0.7; } to { opacity: 1; } }
 
-    /* Simulator Buttons */
-    .sim-btn-group {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+    /* ─── SIM BUTTONS ─── */
+    .sim-btn-group { display: flex; flex-direction: column; gap: 8px; }
     .sim-btn {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
       color: #cbd5e1;
-      padding: 10px 12px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      text-align: left;
+      padding: 11px 12px;
+      border-radius: 8px;
+      font-size: 12px; font-weight: 600;
+      cursor: pointer; text-align: left;
       transition: all 0.2s;
+      touch-action: manipulation;
+      -webkit-user-select: none; user-select: none;
     }
-    .sim-btn:hover {
-      background: rgba(56, 189, 248, 0.2);
-      border-color: var(--accent-cyan);
-      color: #fff;
-    }
-    .sim-btn.active {
-      background: var(--accent-blue);
-      border-color: var(--accent-cyan);
-      color: #fff;
-    }
+    .sim-btn:active { transform: scale(0.98); }
+    .sim-btn.active { background: var(--accent-blue); border-color: var(--accent-cyan); color: #fff; }
 
-    /* Vitals */
+    /* ─── VITALS GRID ─── */
     .vitals-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
+      gap: 10px;
     }
     .vital-tile {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      border-radius: 8px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 10px;
+      padding: 11px;
+      display: flex; flex-direction: column; gap: 3px;
     }
-    .vital-name {
-      font-size: 11px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      font-weight: 600;
-    }
-    .vital-value {
-      font-size: 26px;
-      font-weight: 800;
-      font-family: monospace;
-      color: #fff;
-    }
-    .vital-unit {
-      font-size: 11px;
-      color: var(--accent-cyan);
-    }
-    .vital-baseline {
-      font-size: 10px;
-      color: #64748b;
-    }
+    .vital-name     { font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+    .vital-value    { font-size: 24px; font-weight: 800; font-family: monospace; color: #fff; line-height: 1; }
+    .vital-unit     { font-size: 10px; color: var(--accent-cyan); }
+    .vital-baseline { font-size: 9px; color: #64748b; }
 
-    /* ECG Canvas */
+    /* ─── ECG ─── */
     .ecg-box {
       background: #030712;
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      border-radius: 8px;
+      border: 1px solid rgba(56,189,248,0.3);
+      border-radius: 10px;
       padding: 10px;
     }
     canvas#ecgCanvas {
       width: 100%;
-      height: 140px;
+      height: 120px;
       display: block;
+      touch-action: none;
     }
 
-    /* CDSS Panel */
+    /* ─── CDSS ─── */
     .cdss-alert {
-      padding: 12px 14px;
+      padding: 11px 13px;
       border-radius: 8px;
-      font-size: 12.5px;
+      font-size: 12px;
       line-height: 1.5;
     }
-    .alert-normal {
-      background: rgba(16, 185, 129, 0.12);
-      border: 1px solid rgba(16, 185, 129, 0.4);
-      color: #a7f3d0;
-    }
-    .alert-danger {
-      background: rgba(244, 63, 94, 0.15);
-      border: 1px solid rgba(244, 63, 94, 0.5);
-      color: #fecdd3;
-    }
+    .alert-normal { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.4); color: #a7f3d0; }
+    .alert-danger { background: rgba(244,63,94,0.15);  border: 1px solid rgba(244,63,94,0.5);  color: #fecdd3; }
 
-    .checklist {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 10px;
-    }
+    .checklist { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
     .check-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: rgba(255, 255, 255, 0.04);
-      padding: 8px 12px;
-      border-radius: 6px;
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(255,255,255,0.04);
+      padding: 9px 12px;
+      border-radius: 7px;
       font-size: 12px;
       border-left: 3px solid var(--accent-cyan);
+      touch-action: manipulation;
+      cursor: pointer;
+    }
+    .check-item input[type=checkbox] {
+      width: 16px; height: 16px;
+      accent-color: var(--accent-cyan);
+      cursor: pointer;
+      flex-shrink: 0;
     }
 
-    /* Slide Deck Viewer Tab */
+    /* ─── DECK IFRAME ─── */
     .deck-frame {
       width: 100%;
-      height: 750px;
-      border: 1px solid rgba(56, 189, 248, 0.3);
+      height: 680px;
+      border: 1px solid rgba(56,189,248,0.3);
       border-radius: 12px;
       background: #fff;
     }
 
-    /* Audio Sound Toggle */
-    .audio-btn {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      color: #cbd5e1;
-      padding: 5px 10px;
-      border-radius: 6px;
-      font-size: 11px;
-      cursor: pointer;
-    }
-    .audio-btn.active {
-      background: var(--accent-emerald);
-      color: #fff;
+    /* ─── SCIENCE TAB GRID ─── */
+    .science-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
     }
 
-    footer {
-      background: rgba(10, 17, 36, 0.95);
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 14px 24px;
-      text-align: center;
-      font-size: 12px;
+    /* ─── MOBILE BOTTOM NAV ─── */
+    .bottom-nav {
+      display: none;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(10,17,36,0.98);
+      border-top: 1px solid rgba(56,189,248,0.2);
+      padding: 10px 8px;
+      padding-bottom: calc(10px + var(--safe-bottom));
+      z-index: 999;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .bottom-nav-inner {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    .bnav-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      background: none; border: none;
       color: var(--text-muted);
+      font-size: 10px; font-weight: 600;
+      padding: 6px 12px; border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      touch-action: manipulation;
+      -webkit-user-select: none; user-select: none;
+    }
+    .bnav-btn span.icon { font-size: 20px; }
+    .bnav-btn.active { color: var(--accent-cyan); background: rgba(56,189,248,0.1); }
+
+    /* ─── RESPONSIVE BREAKPOINTS ─── */
+
+    /* Tablet */
+    @media (max-width: 1024px) {
+      .cockpit-grid {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto;
+      }
+      .cockpit-grid > div:last-child {
+        grid-column: 1 / -1;
+      }
+      .status-strip .status-item { display: none; }
+      .science-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      header { padding: 10px 14px; padding-top: calc(10px + var(--safe-top)); }
+      main   { padding: 12px 12px; padding-bottom: calc(70px + var(--safe-bottom)); }
+
+      /* Hide desktop nav, show hamburger */
+      .nav-tabs-desktop { display: none; }
+      .hamburger        { display: flex; }
+      .status-strip     { display: none; }
+
+      /* Show mobile audio toggle differently */
+      .mobile-audio-wrap { display: flex; align-items: center; gap: 8px; }
+
+      /* Show bottom nav */
+      .bottom-nav { display: block; }
+
+      /* Single column cockpit */
+      .cockpit-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+
+      .vitals-grid { grid-template-columns: repeat(2, 1fr); }
+      .vital-value { font-size: 20px; }
+
+      .deck-frame { height: 420px; }
+      .science-grid { grid-template-columns: 1fr; }
+
+      .crew-card { padding: 10px; }
+      .crew-name { font-size: 13px; }
+
+      .sim-btn { font-size: 13px; padding: 13px 12px; }
+    }
+
+    /* Small phones */
+    @media (max-width: 390px) {
+      .vitals-grid { grid-template-columns: repeat(2, 1fr); }
+      .logo-badge  { font-size: 9px; padding: 4px 7px; }
+      .brand-name  { font-size: 13px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Top Navigation Header -->
+  <!-- Mobile Nav Drawer -->
+  <div class="nav-drawer" id="navDrawer">
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    <div style="font-size:22px; font-weight:900; color:var(--accent-cyan); margin-bottom:8px;">BioOrbit-Edge</div>
+    <button class="drawer-btn active" id="d-cockpit" onclick="switchTab('cockpit'); closeDrawer()">🚀 Live Health Cockpit</button>
+    <button class="drawer-btn"        id="d-deck"    onclick="switchTab('deck');    closeDrawer()">📊 7-Slide Pitch Deck</button>
+    <button class="drawer-btn"        id="d-science" onclick="switchTab('science'); closeDrawer()">🧬 Science & Architecture</button>
+    <button class="audio-btn" style="margin-top:12px; padding:14px 24px; font-size:14px;" id="audioToggleMobile" onclick="toggleAudio()">🔈 Heart Beep: Off</button>
+  </div>
+
+  <!-- HEADER -->
   <header>
     <div class="brand">
       <div class="logo-badge">NASA SPACE APPS</div>
       <div>
-        <div style="font-weight: 800; font-size: 16px;">BioOrbit-Edge</div>
-        <div style="font-size: 10px; color:var(--accent-cyan); text-transform:uppercase;">Autonomous Spaceflight Health Platform</div>
+        <div class="brand-name">BioOrbit-Edge</div>
+        <div class="brand-sub">Autonomous Spaceflight Health</div>
       </div>
     </div>
 
-    <div class="nav-tabs">
-      <button class="nav-btn active" onclick="switchTab('cockpit')">🚀 Live Health Cockpit</button>
-      <button class="nav-btn" onclick="switchTab('deck')">📊 7-Slide Pitch Deck</button>
-      <button class="nav-btn" onclick="switchTab('science')">🧬 NASA Science & Architecture</button>
+    <!-- Desktop Nav -->
+    <div class="nav-tabs-desktop">
+      <button class="nav-btn active" onclick="switchTab('cockpit')">🚀 Live Cockpit</button>
+      <button class="nav-btn"        onclick="switchTab('deck')">📊 Pitch Deck</button>
+      <button class="nav-btn"        onclick="switchTab('science')">🧬 Science</button>
     </div>
 
+    <!-- Desktop Status Strip -->
     <div class="status-strip">
       <div class="status-item">
         <span class="status-label">Earth Delay</span>
@@ -409,144 +525,150 @@
         <span class="status-label">Edge Node</span>
         <span class="status-val" style="color:var(--accent-emerald);">● AUTONOMOUS</span>
       </div>
-      <button class="audio-btn" id="audioToggle" onclick="toggleAudio()">🔈 Heart Beep: Off</button>
+      <button class="audio-btn" id="audioToggle" onclick="toggleAudio()">🔈 Beep: Off</button>
     </div>
+
+    <!-- Mobile Hamburger -->
+    <button class="hamburger" onclick="openDrawer()" aria-label="Open Menu">
+      <span></span><span></span><span></span>
+    </button>
   </header>
 
-  <!-- Main Views Container -->
+  <!-- MAIN -->
   <main>
 
     <!-- TAB 1: COCKPIT -->
     <div id="tab-cockpit" class="tab-content active">
       <div class="cockpit-grid">
-        
-        <!-- Left: Crew Selection & Scenarios -->
-        <div style="display:flex; flex-direction:column; gap:20px;">
+
+        <!-- Left Column -->
+        <div style="display:flex; flex-direction:column; gap:14px;">
+
+          <!-- Crew Biosensors -->
           <div class="card">
             <div class="card-title">
               <span>Crew Biosensors</span>
-              <span style="font-size:10px; color:var(--text-muted);">3 Online</span>
+              <span style="font-size:9px; color:var(--text-muted);">3 Online</span>
             </div>
             <div style="display:flex; flex-direction:column; gap:8px;">
-              <div class="crew-card active" onclick="selectCrew(0)">
+              <div class="crew-card active" onclick="selectCrew(0, this)">
                 <div class="crew-avatar">ER</div>
-                <div>
-                  <div class="crew-name">Dr. Elena Rostova</div>
-                  <div class="crew-role">Commander (In EVA Suit)</div>
-                </div>
+                <div><div class="crew-name">Dr. Elena Rostova</div><div class="crew-role">Commander (EVA Suit)</div></div>
                 <span class="status-pill status-nominal" id="crew0-pill">Nominal</span>
               </div>
-              <div class="crew-card" onclick="selectCrew(1)">
+              <div class="crew-card" onclick="selectCrew(1, this)">
                 <div class="crew-avatar">MC</div>
-                <div>
-                  <div class="crew-name">Marcus Chen</div>
-                  <div class="crew-role">Flight Engineer</div>
-                </div>
+                <div><div class="crew-name">Marcus Chen</div><div class="crew-role">Flight Engineer</div></div>
                 <span class="status-pill status-nominal">Nominal</span>
               </div>
-              <div class="crew-card" onclick="selectCrew(2)">
+              <div class="crew-card" onclick="selectCrew(2, this)">
                 <div class="crew-avatar">SM</div>
-                <div>
-                  <div class="crew-name">Sarah Miller</div>
-                  <div class="crew-role">Science Specialist</div>
-                </div>
+                <div><div class="crew-name">Sarah Miller</div><div class="crew-role">Science Specialist</div></div>
                 <span class="status-pill status-nominal">Nominal</span>
               </div>
             </div>
           </div>
 
+          <!-- Anomaly Simulator -->
           <div class="card">
             <div class="card-title">
-              <span>Interactive Simulator</span>
-              <span style="font-size:10px; color:var(--accent-amber);">Trigger Anomaly</span>
+              <span>Scenario Simulator</span>
+              <span style="font-size:9px; color:var(--accent-amber);">Trigger Anomaly</span>
             </div>
-            <p style="font-size:11.5px; color:var(--text-muted);">
-              Test how the autonomous edge system responds in deep space without Mission Control:
+            <p style="font-size:11px; color:var(--text-muted); line-height:1.5;">
+              Simulate real deep-space health emergencies — autonomous edge response, no Mission Control:
             </p>
             <div class="sim-btn-group">
-              <button class="sim-btn active" onclick="setScenario('normal')">🟢 1. Normal Microgravity Baseline</button>
-              <button class="sim-btn" onclick="setScenario('arrhythmia')">🔴 2. EVA Ventricular Arrhythmia</button>
-              <button class="sim-btn" onclick="setScenario('sans')">🟡 3. SANS Fluid Shift & ICP Surge</button>
-              <button class="sim-btn" onclick="setScenario('radiation')">🟣 4. Solar Particle Event (SPE)</button>
+              <button class="sim-btn active" onclick="setScenario('normal',   this)">🟢 1. Normal Microgravity Baseline</button>
+              <button class="sim-btn"        onclick="setScenario('arrhythmia', this)">🔴 2. EVA Ventricular Arrhythmia</button>
+              <button class="sim-btn"        onclick="setScenario('sans',     this)">🟡 3. SANS Fluid Shift & ICP Surge</button>
+              <button class="sim-btn"        onclick="setScenario('radiation', this)">🟣 4. Solar Particle Event (SPE)</button>
             </div>
           </div>
+
         </div>
 
-        <!-- Center: Live Telemetry & ECG Waveform -->
-        <div style="display:flex; flex-direction:column; gap:20px;">
+        <!-- Center Column -->
+        <div style="display:flex; flex-direction:column; gap:14px;">
+
+          <!-- Live Vitals -->
           <div class="card">
             <div class="card-title">
               <span id="crewNameHeader">Live Vitals: Dr. Elena Rostova</span>
-              <span style="font-size:11px; color:var(--accent-emerald);">Edge Filtered (Active)</span>
+              <span style="font-size:10px; color:var(--accent-emerald);">Edge Active</span>
             </div>
             <div class="vitals-grid">
               <div class="vital-tile">
-                <span class="vital-name">Heart Rate (ECG)</span>
+                <span class="vital-name">Heart Rate</span>
                 <div><span class="vital-value" id="val-hr">72</span> <span class="vital-unit">BPM</span></div>
-                <span class="vital-baseline">Target: 60 - 90 BPM</span>
+                <span class="vital-baseline">60–90 BPM</span>
               </div>
               <div class="vital-tile">
-                <span class="vital-name">Blood Oxygen (SpO₂)</span>
+                <span class="vital-name">SpO₂</span>
                 <div><span class="vital-value" id="val-spo2">98.5</span> <span class="vital-unit">%</span></div>
-                <span class="vital-baseline">Target: &gt; 95.0%</span>
+                <span class="vital-baseline">&gt; 95.0%</span>
               </div>
               <div class="vital-tile">
-                <span class="vital-name">Core Body Temp</span>
+                <span class="vital-name">Core Temp</span>
                 <div><span class="vital-value" id="val-temp">37.1</span> <span class="vital-unit">°C</span></div>
-                <span class="vital-baseline">Normal: 36.8 - 37.4 °C</span>
+                <span class="vital-baseline">36.8–37.4°C</span>
               </div>
               <div class="vital-tile">
-                <span class="vital-name">Heart Rate Variability</span>
+                <span class="vital-name">HRV</span>
                 <div><span class="vital-value" id="val-hrv">64</span> <span class="vital-unit">ms</span></div>
-                <span class="vital-baseline">Autonomic Balance</span>
+                <span class="vital-baseline">Autonomic</span>
               </div>
               <div class="vital-tile">
                 <span class="vital-name">Blood Pressure</span>
                 <div><span class="vital-value" id="val-bp">118/78</span> <span class="vital-unit">mmHg</span></div>
-                <span class="vital-baseline">Post-fluid shift adapt</span>
+                <span class="vital-baseline">Post-fluid adapt</span>
               </div>
               <div class="vital-tile">
-                <span class="vital-name">Radiation Dosimeter</span>
-                <div><span class="vital-value" id="val-rad">0.48</span> <span class="vital-unit">mSv/day</span></div>
-                <span class="vital-baseline">Deep Space Background</span>
+                <span class="vital-name">Radiation</span>
+                <div><span class="vital-value" id="val-rad">0.48</span> <span class="vital-unit">mSv/d</span></div>
+                <span class="vital-baseline">GCR Background</span>
               </div>
             </div>
           </div>
 
+          <!-- ECG Waveform -->
           <div class="card">
             <div class="card-title">
-              <span>Real-Time Lead-II ECG Waveform Stream</span>
-              <span id="ecgRhythmTag" style="font-size:11px; color:var(--accent-emerald);">Sinus Rhythm (Normal)</span>
+              <span>Lead-II ECG Stream</span>
+              <span id="ecgTag" style="font-size:10px; color:var(--accent-emerald);">Sinus Rhythm (Normal)</span>
             </div>
             <div class="ecg-box">
-              <canvas id="ecgCanvas" width="700" height="140"></canvas>
+              <canvas id="ecgCanvas" width="700" height="120"></canvas>
             </div>
           </div>
+
         </div>
 
-        <!-- Right: CDSS & Action Checklist -->
-        <div style="display:flex; flex-direction:column; gap:20px;">
+        <!-- Right Column: CDSS -->
+        <div style="display:flex; flex-direction:column; gap:14px;">
           <div class="card">
             <div class="card-title">
               <span>Autonomous CDSS</span>
-              <span style="font-size:10px; color:var(--accent-cyan);">NASA ExMC</span>
+              <span style="font-size:9px; color:var(--accent-cyan);">NASA ExMC</span>
             </div>
             <div class="cdss-alert alert-normal" id="cdssAlert">
               <strong>System Diagnosis:</strong>
-              <p id="cdssDiagnosis" style="margin-top:4px;">All physiological biomarkers within personalized microgravity bounds. Zero clinical intervention indicated.</p>
+              <p id="cdssDiagnosis" style="margin-top:4px;">
+                All biomarkers within personalized microgravity bounds. Zero intervention indicated.
+              </p>
             </div>
             <div>
-              <span style="font-size:11px; text-transform:uppercase; font-weight:700; color:var(--text-muted);">
-                Actionable Protocol Checklist:
+              <span style="font-size:10px; text-transform:uppercase; font-weight:700; color:var(--text-muted);">
+                Action Protocol Checklist:
               </span>
               <div class="checklist" id="actionList">
-                <label class="check-item"><input type="checkbox" checked disabled> <span>Daily 2.5-hr resistive ARED countermeasure</span></label>
-                <label class="check-item"><input type="checkbox" checked disabled> <span>Hydration schedule (750ml electrolyte mix)</span></label>
-                <label class="check-item"><input type="checkbox" checked disabled> <span>Cabin circadian lighting schedule active</span></label>
+                <label class="check-item"><input type="checkbox" checked disabled><span>Daily 2.5-hr ARED resistive countermeasure</span></label>
+                <label class="check-item"><input type="checkbox" checked disabled><span>Hydration: 750ml electrolyte mix</span></label>
+                <label class="check-item"><input type="checkbox" checked disabled><span>Cabin circadian lighting schedule active</span></label>
               </div>
             </div>
-            <div style="background:rgba(0,0,0,0.3); border:1px dashed rgba(255,255,255,0.15); padding:10px; border-radius:6px; font-size:11px;">
-              <strong>DTN Packet Queue:</strong> 3 Compressed Bundles queued for next Earth communication pass (RFC 5050).
+            <div style="background:rgba(0,0,0,0.3); border:1px dashed rgba(255,255,255,0.12); padding:10px; border-radius:8px; font-size:11px; color:#94a3b8;">
+              <strong style="color:#fff;">DTN Queue:</strong> 3 Compressed Bundles ready for next Earth comm pass (RFC 5050).
             </div>
           </div>
         </div>
@@ -554,38 +676,35 @@
       </div>
     </div>
 
-    <!-- TAB 2: 7-SLIDE PITCH DECK -->
+    <!-- TAB 2: PITCH DECK -->
     <div id="tab-deck" class="tab-content">
-      <div class="card" style="margin-bottom:14px;">
+      <div class="card" style="margin-bottom:12px;">
         <div class="card-title">
-          <span>Project Demonstration: Official 7-Slide Presentation</span>
-          <span style="font-size:11px; color:var(--accent-cyan);">NASA Space Apps Global Award Compliant</span>
+          <span>Official 7-Slide Presentation</span>
+          <span style="font-size:10px; color:var(--accent-cyan);">Global Award Compliant</span>
         </div>
-        <p style="font-size:13px; color:#cbd5e1;">
-          Judges can view all 7 presentation slides directly within this functional web application below:
-        </p>
+        <p style="font-size:12px; color:#cbd5e1;">All 7 presentation slides are embedded and viewable directly below:</p>
       </div>
-      <iframe class="deck-frame" src="presentation-deck.html"></iframe>
+      <iframe class="deck-frame" src="presentation-deck.html" title="BioOrbit-Edge 7-Slide Deck"></iframe>
     </div>
 
-    <!-- TAB 3: NASA SCIENCE & ARCHITECTURE -->
+    <!-- TAB 3: SCIENCE -->
     <div id="tab-science" class="tab-content">
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+      <div class="science-grid">
         <div class="card">
           <div class="card-title"><span>Deep Space Physiological Stressors</span></div>
           <div style="display:flex; flex-direction:column; gap:12px; font-size:13px; color:#cbd5e1; line-height:1.6;">
-            <p><strong>1. Cephalad Fluid Redistribution & SANS:</strong> In microgravity, ~2 liters of bodily fluid shifts toward the head, elevating intracranial pressure and causing optic disc edema (Spaceflight-Associated Neuro-ocular Syndrome).</p>
-            <p><strong>2. Cardiovascular Deconditioning:</strong> The heart requires less force to pump blood without gravity, leading to myocardial atrophy, reduced stroke volume, and severe orthostatic intolerance upon planetary landing.</p>
-            <p><strong>3. Space Radiation Risks:</strong> Deep space astronauts are exposed to Galactic Cosmic Rays (GCR) and unpredictable Solar Particle Events (SPE), elevating acute radiation sickness and carcinogenic risks.</p>
+            <p><strong>1. Cephalad Fluid Shift & SANS:</strong> ~2 liters of fluid redistributes toward the head in microgravity, elevating intracranial pressure and causing optic disc edema (Spaceflight-Associated Neuro-ocular Syndrome).</p>
+            <p><strong>2. Cardiovascular Deconditioning:</strong> Myocardial atrophy, reduced stroke volume, and orthostatic intolerance develop progressively during long-duration flights.</p>
+            <p><strong>3. Cosmic Radiation Exposure:</strong> Continuous GCR exposure and unpredictable Solar Particle Events (SPE) elevate cancer risk and can cause acute radiation syndrome.</p>
           </div>
         </div>
-
         <div class="card">
           <div class="card-title"><span>Software Architecture & Standards</span></div>
           <div style="display:flex; flex-direction:column; gap:12px; font-size:13px; color:#cbd5e1; line-height:1.6;">
-            <p><strong>• NASA ExMC Ontology:</strong> The Clinical Decision Support System uses diagnostic trees and medical formulary lists compliant with NASA Exploration Medical Capability requirements.</p>
-            <p><strong>• Edge-Native ONNX Inference:</strong> Lightweight neural models run directly on rad-hardened spacecraft compute cores with sub-20ms inference latency.</p>
-            <p><strong>• Delay-Tolerant Networking (RFC 5050):</strong> Asynchronous bundle protocol queues telemetry packets until line-of-sight communication with NASA Deep Space Network (DSN) is restored.</p>
+            <p><strong>• NASA ExMC Ontology:</strong> CDSS diagnostic trees and medical formulary are aligned to NASA Exploration Medical Capability standards for autonomous crew care.</p>
+            <p><strong>• Edge-Native ONNX Inference:</strong> Lightweight neural temporal models on rad-hardened spacecraft CPUs achieve &lt;20ms anomaly detection latency.</p>
+            <p><strong>• Delay-Tolerant Networking (RFC 5050):</strong> Telemetry bundles are queued asynchronously and transmitted during Deep Space Network comm windows.</p>
           </div>
         </div>
       </div>
@@ -593,168 +712,244 @@
 
   </main>
 
-  <footer>
-    <strong>BioOrbit-Edge:</strong> Autonomous Spaceflight Health Monitoring Software • Developed for NASA Space Apps Challenge
-  </footer>
+  <!-- Mobile Bottom Navigation -->
+  <nav class="bottom-nav">
+    <div class="bottom-nav-inner">
+      <button class="bnav-btn active" id="bnav-cockpit" onclick="switchTab('cockpit')">
+        <span class="icon">🚀</span><span>Cockpit</span>
+      </button>
+      <button class="bnav-btn" id="bnav-deck" onclick="switchTab('deck')">
+        <span class="icon">📊</span><span>Deck</span>
+      </button>
+      <button class="bnav-btn" id="bnav-science" onclick="switchTab('science')">
+        <span class="icon">🧬</span><span>Science</span>
+      </button>
+      <button class="bnav-btn" onclick="toggleAudio()">
+        <span class="icon" id="bnavAudioIcon">🔈</span><span>Beep</span>
+      </button>
+    </div>
+  </nav>
 
   <script>
-    // Tab Switcher
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    // ─── Tab Switching ───────────────────────────────────────────
+    const TABS = ['cockpit', 'deck', 'science'];
+
+    function switchTab(id) {
+      TABS.forEach(t => {
+        document.getElementById('tab-' + t)?.classList.remove('active');
+        document.getElementById('bnav-' + t)?.classList.remove('active');
+        const d = document.getElementById('d-' + t);
+        if (d) d.classList.remove('active');
+      });
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById('tab-' + tabId).classList.add('active');
-      event.target.classList.add('active');
+
+      document.getElementById('tab-' + id)?.classList.add('active');
+      const bnav = document.getElementById('bnav-' + id);
+      if (bnav) bnav.classList.add('active');
+      const d = document.getElementById('d-' + id);
+      if (d) d.classList.add('active');
+
+      // Desktop nav buttons
+      const deskBtns = document.querySelectorAll('.nav-btn');
+      const map = {cockpit:0, deck:1, science:2};
+      if (deskBtns[map[id]]) deskBtns[map[id]].classList.add('active');
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // Audio Context Synthesizer (Heart Beep)
+    // ─── Drawer ─────────────────────────────────────────────────
+    function openDrawer()  { document.getElementById('navDrawer').classList.add('open'); }
+    function closeDrawer() { document.getElementById('navDrawer').classList.remove('open'); }
+
+    // Close drawer on backdrop tap
+    document.getElementById('navDrawer').addEventListener('click', function(e) {
+      if (e.target === this) closeDrawer();
+    });
+
+    // ─── Audio ──────────────────────────────────────────────────
     let audioCtx = null;
     let audioEnabled = false;
 
     function toggleAudio() {
       audioEnabled = !audioEnabled;
-      const btn = document.getElementById('audioToggle');
-      if (audioEnabled) {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        btn.innerText = "🔊 Heart Beep: On";
-        btn.classList.add('active');
-      } else {
-        btn.innerText = "🔈 Heart Beep: Off";
-        btn.classList.remove('active');
+      if (audioEnabled && !audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       }
+      const label = audioEnabled ? '🔊 Beep: On' : '🔈 Beep: Off';
+      const icon  = audioEnabled ? '🔊' : '🔈';
+      const desktopBtn = document.getElementById('audioToggle');
+      const mobileBtn  = document.getElementById('audioToggleMobile');
+      const bnavIcon   = document.getElementById('bnavAudioIcon');
+      if (desktopBtn) { desktopBtn.innerText = label; desktopBtn.classList.toggle('on', audioEnabled); }
+      if (mobileBtn)  { mobileBtn.innerText  = audioEnabled ? '🔊 Heart Beep: On' : '🔈 Heart Beep: Off'; mobileBtn.classList.toggle('on', audioEnabled); }
+      if (bnavIcon)   bnavIcon.innerText = icon;
     }
 
-    function playBeep(freq = 880) {
+    function playBeep(freq) {
       if (!audioEnabled || !audioCtx) return;
-      const osc = audioCtx.createOscillator();
+      const osc  = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = 'sine';
-      osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.08);
+      osc.frequency.value = freq || 880;
+      gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.09);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(); osc.stop(audioCtx.currentTime + 0.09);
     }
 
-    // ECG Canvas Simulator
+    // ─── ECG Canvas ─────────────────────────────────────────────
     const canvas = document.getElementById('ecgCanvas');
-    const ctx = canvas.getContext('2d');
+    const ctx2d  = canvas.getContext('2d');
     let currentScenario = 'normal';
     let points = [];
     let t = 0;
 
-    let hr = 72, spo2 = 98.5, temp = 37.1, hrv = 64, bp = "118/78", rad = 0.48;
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr  = window.devicePixelRatio || 1;
+      canvas.width  = rect.width  * dpr;
+      canvas.height = rect.height * dpr;
+      ctx2d.scale(dpr, dpr);
+      points = [];
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    setTimeout(resizeCanvas, 100);
 
     function getECG(time) {
-      const mid = canvas.height / 2;
-      let cycle = time % (currentScenario === 'arrhythmia' ? 38 : 55);
+      const W   = canvas.width  / (window.devicePixelRatio || 1);
+      const H   = canvas.height / (window.devicePixelRatio || 1);
+      const mid = H / 2;
+      const period = currentScenario === 'arrhythmia' ? 38 : 55;
+      let cycle = time % period;
 
-      if (cycle === 25) {
-        playBeep(currentScenario === 'arrhythmia' ? 1100 : 880);
-      }
+      if (Math.round(cycle) === 24) playBeep(currentScenario === 'arrhythmia' ? 1100 : 880);
 
-      if (currentScenario === 'arrhythmia' && cycle > 6 && cycle < 12) {
-        return mid - 45; // PVC spike
-      }
-      if (cycle >= 16 && cycle < 20) return mid - 8;
-      if (cycle >= 22 && cycle < 24) return mid + 6;
-      if (cycle >= 24 && cycle < 27) return mid - 55; // R peak
-      if (cycle >= 27 && cycle < 30) return mid + 16;
-      if (cycle >= 34 && cycle < 40) return mid - 14;
-      return mid + (Math.random() - 0.5) * 2;
+      if (currentScenario === 'arrhythmia' && cycle > 5 && cycle < 11) return mid - (H * 0.33);
+      if (cycle >= 16 && cycle < 20) return mid - (H * 0.06);
+      if (cycle >= 22 && cycle < 24) return mid + (H * 0.11);
+      if (cycle >= 24 && cycle < 27) return mid - (H * 0.42);
+      if (cycle >= 27 && cycle < 30) return mid + (H * 0.13);
+      if (cycle >= 34 && cycle < 40) return mid - (H * 0.11);
+      return mid + (Math.random() - 0.5) * 1.5;
     }
 
     function drawECG() {
-      ctx.fillStyle = 'rgba(3, 7, 18, 0.25)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      const W = canvas.width  / (window.devicePixelRatio || 1);
+      const H = canvas.height / (window.devicePixelRatio || 1);
 
-      ctx.strokeStyle = currentScenario === 'arrhythmia' ? '#f43f5e' : '#38bdf8';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
+      ctx2d.fillStyle = 'rgba(3,7,18,0.22)';
+      ctx2d.fillRect(0, 0, W, H);
+
+      ctx2d.strokeStyle = currentScenario === 'arrhythmia' ? '#f43f5e' : '#38bdf8';
+      ctx2d.lineWidth   = window.devicePixelRatio > 1 ? 1.5 : 2;
+      ctx2d.beginPath();
 
       const y = getECG(t);
       points.push(y);
-      if (points.length > canvas.width) points.shift();
+      if (points.length > W) points.shift();
 
       for (let i = 0; i < points.length; i++) {
-        if (i === 0) ctx.moveTo(i, points[i]);
-        else ctx.lineTo(i, points[i]);
+        if (i === 0) ctx2d.moveTo(i, points[i]);
+        else         ctx2d.lineTo(i, points[i]);
       }
-      ctx.stroke();
+      ctx2d.stroke();
 
       t += (currentScenario === 'arrhythmia' ? 2 : 1.3);
       requestAnimationFrame(drawECG);
     }
     drawECG();
 
-    // Scenario Trigger
-    function setScenario(scen) {
+    // ─── Scenario Switcher ───────────────────────────────────────
+    function setScenario(scen, btn) {
       currentScenario = scen;
+      points = [];
       document.querySelectorAll('.sim-btn').forEach(b => b.classList.remove('active'));
-      event.target.classList.add('active');
+      if (btn) btn.classList.add('active');
 
-      const alert = document.getElementById('cdssAlert');
-      const diag = document.getElementById('cdssDiagnosis');
-      const list = document.getElementById('actionList');
-      const tag = document.getElementById('ecgRhythmTag');
-      const pill = document.getElementById('crew0-pill');
+      const alertBox = document.getElementById('cdssAlert');
+      const diag     = document.getElementById('cdssDiagnosis');
+      const list     = document.getElementById('actionList');
+      const tag      = document.getElementById('ecgTag');
+      const pill     = document.getElementById('crew0-pill');
 
-      if (scen === 'normal') {
-        hr = 72; spo2 = 98.5; temp = 37.1; hrv = 64; bp = "118/78"; rad = 0.48;
-        pill.className = "status-pill status-nominal"; pill.innerText = "Nominal";
-        alert.className = "cdss-alert alert-normal";
-        diag.innerText = "All physiological biomarkers within personalized microgravity bounds. Zero clinical intervention indicated.";
-        tag.innerText = "Sinus Rhythm (Normal)"; tag.style.color = "var(--accent-emerald)";
-        list.innerHTML = `
-          <label class="check-item"><input type="checkbox" checked disabled><span>Daily 2.5-hr resistive ARED countermeasure</span></label>
-          <label class="check-item"><input type="checkbox" checked disabled><span>Hydration schedule (750ml electrolyte mix)</span></label>
-          <label class="check-item"><input type="checkbox" checked disabled><span>Cabin circadian lighting schedule active</span></label>
-        `;
-      } else if (scen === 'arrhythmia') {
-        hr = 138; spo2 = 94.2; temp = 38.6; hrv = 21; bp = "152/96"; rad = 0.52;
-        pill.className = "status-pill status-critical"; pill.innerText = "CRITICAL";
-        alert.className = "cdss-alert alert-danger";
-        diag.innerHTML = "<strong>CRITICAL ANOMALY:</strong> Ventricular Ectopy accompanied by acute EVA hyperthermia (38.6°C) and sympathetic overload.";
-        tag.innerText = "Ventricular Ectopy / Tachycardia"; tag.style.color = "var(--accent-rose)";
-        list.innerHTML = `
-          <label class="check-item" style="border-left-color:var(--accent-rose);"><input type="checkbox"><span><strong>ABORT EVA:</strong> Ingress airlock & repressurize cabin</span></label>
-          <label class="check-item" style="border-left-color:var(--accent-rose);"><input type="checkbox"><span>Activate Liquid Cooling Garment (LCVG) flush</span></label>
-          <label class="check-item" style="border-left-color:var(--accent-rose);"><input type="checkbox"><span>Administer oral Metoprolol 25mg per ExMC card #4</span></label>
-        `;
-      } else if (scen === 'sans') {
-        hr = 68; spo2 = 97.8; temp = 37.0; hrv = 48; bp = "136/88"; rad = 0.49;
-        pill.className = "status-pill status-critical"; pill.innerText = "SANS ALERT";
-        alert.className = "cdss-alert alert-danger";
-        diag.innerHTML = "<strong>SANS ALERT:</strong> Cephalad fluid engorgement and optic nerve sheath diameter elevation (>5.9mm).";
-        tag.innerText = "Sinus Bradycardia (Elevated ICP)"; tag.style.color = "var(--accent-amber)";
-        list.innerHTML = `
-          <label class="check-item" style="border-left-color:var(--accent-amber);"><input type="checkbox"><span>Initiate Lower Body Negative Pressure (LBNP) 45 min</span></label>
-          <label class="check-item" style="border-left-color:var(--accent-amber);"><input type="checkbox"><span>Ultrasound optic nerve sheath assessment</span></label>
-        `;
-      } else if (scen === 'radiation') {
-        hr = 82; spo2 = 98.0; temp = 37.3; hrv = 55; bp = "124/82"; rad = 8.40;
-        pill.className = "status-pill status-critical"; pill.innerText = "SPE ALERT";
-        alert.className = "cdss-alert alert-danger";
-        diag.innerHTML = "<strong>RADIATION STORM:</strong> Solar Particle Event (SPE) detected (8.40 mSv/day). Immediate shelter protocol required.";
-        tag.innerText = "Sinus Rhythm (Radiation Advisory)"; tag.style.color = "var(--accent-rose)";
-        list.innerHTML = `
-          <label class="check-item" style="border-left-color:var(--accent-rose);"><input type="checkbox"><span>Crew ingress spacecraft storm shelter (water wall)</span></label>
-          <label class="check-item" style="border-left-color:var(--accent-rose);"><input type="checkbox"><span>Calibrate active personal radiation dosimeters</span></label>
-        `;
-      }
-      document.getElementById('val-hr').innerText = hr;
-      document.getElementById('val-spo2').innerText = spo2;
-      document.getElementById('val-temp').innerText = temp;
-      document.getElementById('val-hrv').innerText = hrv;
-      document.getElementById('val-bp').innerText = bp;
-      document.getElementById('val-rad').innerText = rad;
+      const scenarios = {
+        normal: {
+          hr:'72', spo2:'98.5', temp:'37.1', hrv:'64', bp:'118/78', rad:'0.48',
+          pillClass:'status-pill status-nominal', pillText:'Nominal',
+          alertClass:'cdss-alert alert-normal',
+          diag:'All biomarkers within personalized microgravity bounds. Zero clinical intervention indicated.',
+          tagText:'Sinus Rhythm (Normal)', tagColor:'var(--accent-emerald)',
+          checks:[
+            {color:'var(--accent-cyan)', text:'Daily 2.5-hr ARED resistive countermeasure', done:true},
+            {color:'var(--accent-cyan)', text:'Hydration: 750ml electrolyte mix', done:true},
+            {color:'var(--accent-cyan)', text:'Cabin circadian lighting schedule active', done:true}
+          ]
+        },
+        arrhythmia: {
+          hr:'138', spo2:'94.2', temp:'38.6', hrv:'21', bp:'152/96', rad:'0.52',
+          pillClass:'status-pill status-critical', pillText:'CRITICAL',
+          alertClass:'cdss-alert alert-danger',
+          diag:'<strong>CRITICAL:</strong> Ventricular Ectopy + EVA hyperthermia (38.6°C) + sympathetic overload detected.',
+          tagText:'Ventricular Ectopy / Tachycardia', tagColor:'var(--accent-rose)',
+          checks:[
+            {color:'var(--accent-rose)', text:'ABORT EVA: Ingress airlock & repressurize cabin', done:false},
+            {color:'var(--accent-rose)', text:'Activate Liquid Cooling Garment (LCVG) flush', done:false},
+            {color:'var(--accent-rose)', text:'Administer Metoprolol 25mg per ExMC card #4', done:false}
+          ]
+        },
+        sans: {
+          hr:'68', spo2:'97.8', temp:'37.0', hrv:'48', bp:'136/88', rad:'0.49',
+          pillClass:'status-pill status-critical', pillText:'SANS ALERT',
+          alertClass:'cdss-alert alert-danger',
+          diag:'<strong>SANS ALERT:</strong> Elevated optic nerve sheath diameter (>5.9mm). Cephalad fluid engorgement active.',
+          tagText:'Sinus Bradycardia (Elevated ICP)', tagColor:'var(--accent-amber)',
+          checks:[
+            {color:'var(--accent-amber)', text:'Initiate Lower Body Negative Pressure (LBNP) 45 min', done:false},
+            {color:'var(--accent-amber)', text:'Portable ultrasound optic nerve sheath assessment', done:false}
+          ]
+        },
+        radiation: {
+          hr:'82', spo2:'98.0', temp:'37.3', hrv:'55', bp:'124/82', rad:'8.40',
+          pillClass:'status-pill status-critical', pillText:'SPE ALERT',
+          alertClass:'cdss-alert alert-danger',
+          diag:'<strong>RADIATION STORM:</strong> SPE detected at 8.40 mSv/day. Immediate storm shelter protocol required.',
+          tagText:'Sinus Rhythm (Radiation Advisory)', tagColor:'var(--accent-rose)',
+          checks:[
+            {color:'var(--accent-rose)', text:'All crew ingress storm shelter (water wall section)', done:false},
+            {color:'var(--accent-rose)', text:'Calibrate and log individual radiation dosimeters', done:false}
+          ]
+        }
+      };
+
+      const s = scenarios[scen];
+      document.getElementById('val-hr').innerText   = s.hr;
+      document.getElementById('val-spo2').innerText = s.spo2;
+      document.getElementById('val-temp').innerText = s.temp;
+      document.getElementById('val-hrv').innerText  = s.hrv;
+      document.getElementById('val-bp').innerText   = s.bp;
+      document.getElementById('val-rad').innerText  = s.rad;
+      pill.className  = s.pillClass;
+      pill.innerText  = s.pillText;
+      alertBox.className = s.alertClass;
+      diag.innerHTML  = s.diag;
+      tag.innerText   = s.tagText;
+      tag.style.color = s.tagColor;
+
+      list.innerHTML = s.checks.map(c =>
+        `<label class="check-item" style="border-left-color:${c.color}">
+           <input type="checkbox" ${c.done ? 'checked disabled' : ''}>
+           <span>${c.text}</span>
+         </label>`
+      ).join('');
     }
 
-    function selectCrew(idx) {
-      document.querySelectorAll('.crew-card').forEach((c, i) => c.classList.toggle('active', i === idx));
-      const names = ["Dr. Elena Rostova", "Marcus Chen", "Sarah Miller"];
-      document.getElementById('crewNameHeader').innerText = "Live Vitals: " + names[idx];
+    // ─── Crew Selection ──────────────────────────────────────────
+    const crewNames = ['Dr. Elena Rostova', 'Marcus Chen', 'Sarah Miller'];
+    function selectCrew(idx, el) {
+      document.querySelectorAll('.crew-card').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      document.getElementById('crewNameHeader').innerText = 'Live Vitals: ' + crewNames[idx];
     }
   </script>
 </body>
